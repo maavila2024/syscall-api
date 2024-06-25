@@ -4,6 +4,7 @@ namespace App\Http\Requests\Task;
 
 use App\Enums\Segment;
 use App\Enums\Status;
+use App\Enums\TaskType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 use App\Http\Requests\Rules;
@@ -28,18 +29,17 @@ class TaskStoreRequest extends FormRequest
     {
         return [
             'segment' => ['required', new Enum(Segment::class)],
+            'task_type' => ['required', new Enum(TaskType::class)],
+            'task_code'  => 'string',
             'name'  => 'string|required',
+            'system_screen'  => 'nullable|string',
+            'observation'  => 'nullable|string',
+            'priority_justification'  => 'nullable|string',
             'description'  => 'string|required',
-            'owner_id'  => 'required',
-            'responsible_id'  => 'required',
-            'task_status_id' => 'required',
-            'system_screen'  => 'string|required',
-            'observation'  => 'string|required',
-            'priority_id'  => 'required',
-            'priority_justification'  => ['required_if:priority_id,4'],
-            'review_justification'  => ['required_if:status_id,3'],
-            'expected_date' => [self::REQUIRED, self::DATE, self::DATE_FORMAT_DB, self::DATE_AFTER_1900],
-            'finish_date' => [self::REQUIRED, self::DATE, self::DATE_FORMAT_DB, self::DATE_AFTER_1900],
+            'owner_id'  => 'required|exists:users,id',
+            'responsible_id'  => 'nullable|exists:users,id',
+            'task_status_id' => 'required|exists:tasks_status,id',
+            'priority_id'  => 'required|exists:priorities,id',
             'status' => ['required', new Enum(Status::class)],
         ];
     }
