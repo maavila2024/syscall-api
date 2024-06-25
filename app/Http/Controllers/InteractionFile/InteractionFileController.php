@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InteractionFile\InteractionFileStoreRequest;
 use App\Models\InteractionFile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class InteractionFileController extends Controller
@@ -17,25 +18,48 @@ class InteractionFileController extends Controller
 
     public function store(InteractionFileStoreRequest $request)
     {
-        $input = $request->validated();
+        Log::info('Request Data:', $request->all());
 
-        if ($request->hasfile('files')) {
+        $files = $request->validated();
+        $files = $request->file('files');
+        $interactionFiles = [];
 
-            foreach ($input['files'] as $file) {
-
-                if ($file->isValid()) {
-
-                    $interactionFile = InteractionFile::create([
-                        'path' => $file->store('interactions/files', 'public'),
-                        'name' => $file->getClientOriginalName(),
-                        'interaction_id' => $request['interaction_id']
-                    ]);
-                }
-            }
-
-            return response()->json($interactionFile);
+        foreach ($files as $file) {
+            $path = $file->store('interactions/files', 'public');
+            $interactionFile = InteractionFile::create([
+                'interaction_id' => $request->interaction_id,
+                'path' => $path,
+                'name' => $file->getClientOriginalName(),
+            ]);
+            $interactionFiles[] = $interactionFile;
         }
+
+        return response()->json($interactionFiles, 201);
     }
+
+    // public function store(InteractionFileStoreRequest $request)
+    // {
+    //     Log::info('Request Data:', $request->all());
+    //     $input = $request->validated();
+    //     $interactionFiles = [];
+    //     if ($request->hasfile('files')) {
+
+    //         foreach ($input['files'] as $file) {
+
+    //             if ($file->isValid()) {
+
+    //                 $interactionFile = InteractionFile::create([
+    //                     'path' => $file->store('interactions/files', 'public'),
+    //                     'name' => $file->getClientOriginalName(),
+    //                     'interaction_id' => $request['interaction_id']
+    //                 ]);
+    //                 $interactionFiles[] = $interactionFile;
+    //             }
+    //         }
+
+    //         return response()->json($interactionFiles);
+    //     }
+    // }
 
     public function destroy(InteractionFile $interactionFile)
     {

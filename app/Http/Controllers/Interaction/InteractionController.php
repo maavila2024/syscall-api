@@ -7,6 +7,8 @@ use App\Http\Requests\Interaction\InteractionStoreRequest;
 use App\Http\Requests\Interaction\InteractionUpdateRequest;
 use App\Models\Interaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class InteractionController extends Controller
 {
@@ -15,21 +17,26 @@ class InteractionController extends Controller
         return response()->json(Interaction::paginate(10));
     }
 
-    public function show(Interaction $interaction, $id)
+    public function show($taskId)
     {
-        // dd($id);
-        // $input = $request->validated();
+        $interactions = Interaction::where('task_id', $taskId)->with('interactionFiles')->get();
 
-        $interaction = Interaction::query()
-            ->whereTask_id($id)
-            ->first();
+        // Adicionar a URL completa do arquivo
+        foreach ($interactions as $interaction) {
+            foreach ($interaction->interactionFiles as $file) {
+                $file->file_url = Storage::url($file->path);
+            }
+        }
 
-        // dd($interaction);
-        return response()->json($interaction);
+        return response()->json($interactions);
+
+        // $interactions = Interaction::where('task_id', $taskId)->with('interactionFiles')->get();
+        // return response()->json($interactions);
     }
 
     public function store(InteractionStoreRequest $request)
     {
+        Log::info('Request Data:', $request->all());
         return response()->json(Interaction::create($request->validated()));
     }
 
