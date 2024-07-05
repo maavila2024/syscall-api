@@ -17,7 +17,7 @@ return [
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
-        'localhost,localhost:3000,localhost:5174,127.0.0.1,127.0.0.1:8000,::1',
+        'http://52.67.189.175:81,https://syscall-app.devtest.com.br,http://syscall-app.devtest.com.br,localhost,localhost:3000,localhost:5173,localhost:5174,127.0.0.1,127.0.0.1:8000,::1',
         Sanctum::currentApplicationUrlWithPort()
     ))),
 
@@ -75,6 +75,7 @@ return [
     */
 
     'middleware' => [
+        'verify_csrf_token' => \App\Http\Middleware\VerifyCsrfToken::class,
         'authenticate_session' => Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
         'encrypt_cookies' => Illuminate\Cookie\Middleware\EncryptCookies::class,
         'validate_csrf_token' => Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
