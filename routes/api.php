@@ -18,9 +18,8 @@ use App\Http\Controllers\TaskStatus\TaskStatusController;
 use App\Http\Controllers\Team\TeamController;
 use App\Http\Controllers\User\MeController;
 use App\Http\Controllers\User\UserController;
-use App\Models\Interaction;
-use App\Models\TaskStatus;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 
 Route::post('login', LoginController::class);
 Route::post('logout', LogoutController::class);
@@ -29,18 +28,13 @@ Route::post('verify-email', VerifyEmailController::class);
 Route::post('forgot-password', ForgotPasswordController::class);
 Route::post('reset-password', ResetPasswordController::class);
 
-
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('me', [MeController::class, 'show']);
+
     Route::get('teams', [TeamController::class, 'index']);
     Route::post('teams', [TeamController::class, 'store']);
     Route::put('teams/{team:token}', [TeamController::class, 'update']);
     Route::delete('teams/{team:token}', [TeamController::class, 'destroy']);
-
-    // Route::get('task-status', [TaskStatusController::class, 'index']);
-    // Route::post('task-status', [TaskStatusController::class, 'store']);
-    // Route::put('task-status/{taskStatus:token}', [TaskStatusController::class, 'update']);
-    // Route::delete('task-status/{taskStatus:token}', [TaskStatusController::class, 'destroy']);
 
     Route::get('tasks', [TaskController::class, 'index']);
     Route::post('tasks', [TaskController::class, 'store']);
@@ -66,12 +60,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('interaction-file/{id}', [InteractionFileController::class, 'show']);
     Route::delete('interaction-file/{interactionFile}', [InteractionFileController::class, 'destroy']);
 
-    // Route::get('statistic', [StatisticController::class, 'index']);
-    // Route::post('statistic', [StatisticController::class, 'store']);
-    // Route::put('statistic/{statistic}', [StatisticController::class, 'update']);
-    // Route::get('statistic/{id}', [StatisticController::class, 'show']);
-    // Route::delete('statistic/{statistic}', [StatisticController::class, 'destroy']);
-
     Route::get('tasks-status', [TaskStatusController::class, 'index']);
     Route::post('tasks-status', [TaskStatusController::class, 'store']);
     Route::put('tasks-status/{taskStatus}', [TaskStatusController::class, 'update']);
@@ -84,27 +72,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::delete('users/{users}', [UserController::class, 'destroy']);
 
-    // Route::get('roles', [RoleController::class, 'index']);
-    // Route::post('roles', [RoleController::class, 'store']);
-    // Route::put('roles/{taskStatus:token}', [RoleController::class, 'update']);
-    // Route::delete('roles/{taskStatus:token}', [RoleController::class, 'destroy']);
-
-    // Route::get('permission', [PermissionController::class, 'index']);
-    // Route::post('permission', [PermissionController::class, 'store']);
-    // Route::put('permission/{taskStatus:token}', [PermissionController::class, 'update']);
-    // Route::delete('permission/{taskStatus:token}', [PermissionController::class, 'destroy']);
-
+    // Rotas de broadcasting
+    // Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
     // Rotas que precisam de team
     Route::middleware(['team'])->group(function () {
+        // Adicione as rotas específicas para teams aqui
     });
 });
-
-Route::middleware(['auth:sanctum', 'team'])->get('test', function() {
-    return 'ok';
-});
-
-
-
-
-

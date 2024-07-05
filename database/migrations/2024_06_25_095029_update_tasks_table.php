@@ -36,7 +36,7 @@ return new class extends Migration
             $table->text('system_screen')->change();
             $table->date('expected_date')->change();
             $table->date('finish_date')->change();
-            $table->string('review_justification')->nullable()->change();
+            $table->text('review_justification')->nullable()->change();
 
             $table->dropForeign(['responsible_id']);
             $table->foreignId('responsible_id')->change();

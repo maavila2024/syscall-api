@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Interaction;
 
+use App\Events\InteractionCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Interaction\InteractionStoreRequest;
 use App\Http\Requests\Interaction\InteractionUpdateRequest;
@@ -36,8 +37,17 @@ class InteractionController extends Controller
 
     public function store(InteractionStoreRequest $request)
     {
-        Log::info('Request Data:', $request->all());
-        return response()->json(Interaction::create($request->validated()));
+        $validated = $request->validated();
+
+        $interaction = Interaction::create([
+            'task_id' => $request->task_id,
+            'user_id' => $request->user_id,
+            'comment' => $request->comment,
+        ]);
+
+        broadcast(new InteractionCreated($interaction))->toOthers();
+
+        return response()->json($interaction, 201);
     }
 
     public function update(InteractionUpdateRequest $request, Interaction $interaction)

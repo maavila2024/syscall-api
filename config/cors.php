@@ -15,13 +15,16 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'broadcasting/auth', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
-
-    // 'allowed_origins' => ['http://localhost:8080','http://localhost:80','http://localhost','http://localhost:5174'],
+    'allowed_origins' => [
+        'http://localhost:5174',
+        'http://52.67.189.175:81',
+        'https://syscall-app.devtest.com.br',
+        'http://syscall-app.devtest.com.br',
+    ],
 
     'allowed_origins_patterns' => [],
 
