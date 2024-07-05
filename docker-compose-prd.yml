@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    image: laravel-app
+    restart: unless-stopped
+    container_name: syscall-app
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    networks:
+      - syscall-network
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=syscall-app
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:alpine
+    container_name: syscall-app-webserver
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on: 
+      - app
+    networks:
+      - syscall-network
+
+  db:
+    image: mysql:8.0.32
+    restart: unless-stopped
+    container_name: syscall-app-db
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./docker/dbdata:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: syscall-app
+    networks:
+      - syscall-network
+    command: --default-authentication-plugin=mysql_native_password
+
+networks:
+  syscall-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
