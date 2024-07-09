@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,12 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Garantir que não há valores NULL antes de modificar as colunas
-        DB::table('tasks')->whereNull('system_screen')->update(['system_screen' => '']);
-        DB::table('tasks')->whereNull('expected_date')->update(['expected_date' => DB::raw('CURRENT_DATE')]);
-        DB::table('tasks')->whereNull('finish_date')->update(['finish_date' => DB::raw('CURRENT_DATE')]);
-        DB::table('tasks')->whereNull('responsible_id')->update(['responsible_id' => 1]); // Substitua por um ID válido
-
         Schema::table('tasks', function (Blueprint $table) {
             $table->char('task_type', 1)->after('segment');
             $table->string('task_code')->after('task_type');
