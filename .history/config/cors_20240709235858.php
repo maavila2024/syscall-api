@@ -21,7 +21,7 @@ return [
 
     'allowed_origins' => ['*'],
 
-    // 'allowed_origins' => ['http://localhost:8080','http://localhost:80','http://localhost','http://localhost:5174','https://syscall-app.devtest.com.br'],
+    'allowed_origins' => ['http://localhost:8080','http://localhost:80','http://localhost','http://localhost:5174','https://syscall-app.devtest.com.br'],
 
     'allowed_origins_patterns' => [],
 
