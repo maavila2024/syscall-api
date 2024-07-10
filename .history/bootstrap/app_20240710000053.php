@@ -4,6 +4,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\TeamMiddleware;
+use Illuminate\Http\Middleware\HandleCors;
+
 // use Illuminate\Http\Middleware\HandleCors;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -16,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->statefulApi();
-        // $middleware->append(HandleCors::class);
+        $middleware->append(HandleCors::class);
         $middleware->alias([
             'team' => TeamMiddleware::class,
         ]);

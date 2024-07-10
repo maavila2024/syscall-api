@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->statefulApi();
-        // $middleware->append(HandleCors::class);
+        $middleware->append(HandleCors::class);
         $middleware->alias([
             'team' => TeamMiddleware::class,
         ]);

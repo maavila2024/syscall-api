@@ -60,6 +60,7 @@ return [
     | See: https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning
     |
     */
+    'prefix' => 'api',
 
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
 
