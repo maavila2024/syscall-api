@@ -23,10 +23,8 @@ class RoleSeeder extends Seeder
 
 
         $permissionDeleteUser = Permission::create(['name' => 'delete_user']);
-        $admin->givePermissionTo($permissionDeleteUser);
 
-        $permissionEditLayout = Permission::create(['name' => 'editar_layout']);
-        $admin->givePermissionTo($permissionEditLayout);
+        $admin->givePermissionTo($permissionDeleteUser);
 
         // $user = User::inRandomOrder()->first();
         // $user->assignRole('manager');

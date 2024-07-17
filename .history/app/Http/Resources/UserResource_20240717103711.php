@@ -28,7 +28,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'teams' => TeamResource::collection($this->whenLoaded('teams')),
             'tasks' => $this->whenLoaded('tasks'),
-            // 'permissions' => $user->getAllPermissions()->pluck('name'),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
         ];
     }
 }
