@@ -21,22 +21,21 @@ class InteractionController extends Controller
 
     public function show($taskId)
     {
-        $interactions = Interaction::where('task_id', $taskId)
-            ->with(['interactionFiles', 'user'])
-            ->get();
+        $interactions = Interaction::where('task_id', $taskId)->with('user', 'interactionFiles')->get();
 
-        // Adicionar a URL completa do arquivo e formatar a data
         foreach ($interactions as $interaction) {
             foreach ($interaction->interactionFiles as $file) {
                 $file->file_url = Storage::url($file->path);
             }
-            $interaction->user_email = $interaction->user->email;
-            $interaction->created_at = $interaction->created_at->format('d-m-Y H:i');
         }
 
-        return response()->json($interactions);
-    }
+        return InteractionResource::collection($interactions);
 
+        // return response()->json($interactions);
+
+        // $interactions = Interaction::where('task_id', $taskId)->with('interactionFiles')->get();
+        // return response()->json($interactions);
+    }
 
     public function store(InteractionStoreRequest $request)
     {
@@ -64,4 +63,5 @@ class InteractionController extends Controller
         $interaction->delete();
         return response()->json('Procedimento Realizado');
     }
+
 }

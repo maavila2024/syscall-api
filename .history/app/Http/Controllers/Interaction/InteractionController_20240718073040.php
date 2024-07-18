@@ -14,29 +14,28 @@ use Illuminate\Support\Facades\Storage;
 
 class InteractionController extends Controller
 {
-    public function index()
+    public function index($taskId)
     {
-        return response()->json(Interaction::paginate(10));
+        $interactions = Interaction::where('task_id', $taskId)->with('user', 'interactionFiles')->get();
+        return InteractionResource::collection($interactions);
     }
 
     public function show($taskId)
     {
-        $interactions = Interaction::where('task_id', $taskId)
-            ->with(['interactionFiles', 'user'])
-            ->get();
+        $interactions = Interaction::where('task_id', $taskId)->with('interactionFiles')->get();
 
-        // Adicionar a URL completa do arquivo e formatar a data
+        // Adicionar a URL completa do arquivo
         foreach ($interactions as $interaction) {
             foreach ($interaction->interactionFiles as $file) {
                 $file->file_url = Storage::url($file->path);
             }
-            $interaction->user_email = $interaction->user->email;
-            $interaction->created_at = $interaction->created_at->format('d-m-Y H:i');
         }
 
         return response()->json($interactions);
-    }
 
+        // $interactions = Interaction::where('task_id', $taskId)->with('interactionFiles')->get();
+        // return response()->json($interactions);
+    }
 
     public function store(InteractionStoreRequest $request)
     {
