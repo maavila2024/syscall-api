@@ -95,12 +95,16 @@ class TaskController extends Controller
 
     public function getTaskStatistics()
     {
-        $totalTasks = Task::count();
-        $statusOpen = Task::where('task_status_id', 1)->count();
-        $statusInDevelopment = Task::where('task_status_id', 2)->count();
-        $statusWaitingResponse = Task::where('task_status_id', 3)->count();
-        $statusSentForTesting = Task::where('task_status_id', 4)->count();
-        $statusCompleted = Task::where('task_status_id', 5)->count();
+        Log::info('Usuário autenticado:', ['user' => auth()->user()]);
+
+        $currentMonth = now()->month;
+
+        $totalTasks = Task::whereMonth('created_at', $currentMonth)->count();
+        $statusOpen = Task::where('status', 'Aberto')->count();
+        $statusInDevelopment = Task::where('status', 'Em desenvolvimento')->count();
+        $statusWaitingResponse = Task::where('status', 'Aguardando resposta')->count();
+        $statusSentForTesting = Task::where('status', 'Enviado para teste')->count();
+        $statusCompleted = Task::where('status', 'Concluído')->count();
 
         return response()->json([
             'totalTasks' => $totalTasks,

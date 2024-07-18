@@ -29,7 +29,7 @@ Route::post('register', RegisterController::class);
 Route::post('verify-email', VerifyEmailController::class);
 Route::post('forgot-password', ForgotPasswordController::class);
 Route::post('reset-password', ResetPasswordController::class);
-Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
+// Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('me', [MeController::class, 'show']);
@@ -48,7 +48,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('tasks/{id}', [TaskController::class, 'show']);
     Route::delete('tasks/{id}', [TaskController::class, 'destroy']);
     Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
-    Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
+    // Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
 
     Route::get('priorities', [PriorityController::class, 'index']);
     Route::post('priorities', [PriorityController::class, 'store']);
