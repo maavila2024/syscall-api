@@ -4,7 +4,7 @@ namespace App\Http\Requests\InteractionFile;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class InteractionFileStoreRequest extends FormRequest
+class InteractionFileUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,7 @@ class InteractionFileStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'files.*' => 'required|max:10240',
+            'files.*' => 'required|mimes:jpg,jpeg,png,gif,pdf,xlx,csv|max:10240',
             'interaction_id' => 'required',
         ];
     }
