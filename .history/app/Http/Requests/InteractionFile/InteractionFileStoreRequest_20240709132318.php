@@ -22,7 +22,7 @@ class InteractionFileStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'files.*' => 'required|max:10240',
+            'files.*' => 'required|mimes:jpg,jpeg,png,gif,pdf,xlx,csv|max:10240',
             'interaction_id' => 'required',
         ];
     }

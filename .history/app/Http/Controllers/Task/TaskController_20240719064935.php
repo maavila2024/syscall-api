@@ -42,8 +42,8 @@ class TaskController extends Controller
             });
         }
 
-        return response()->json($query->paginate(10));
-        // return response()->json($query->get());
+        // return response()->json($query->paginate(10));
+        return response()->json($query->get());
     }
 
 
