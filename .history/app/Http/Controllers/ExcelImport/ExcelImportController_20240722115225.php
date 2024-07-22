@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\ExcelImport;
 
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
+//use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\TasksImport;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +17,7 @@ class ExcelImportController extends Controller
     ]);
 
     try {
-      Excel::import(new TasksImport, $request->file('file')->store('temp'));
+      //  Excel::import(new TasksImport, $request->file('file')->store('temp'));
         return back()->with('success', 'Tasks imported successfully.');
     } catch (\Exception $e) {
         Log::error('Error importing tasks:', ['error' => $e->getMessage()]);
