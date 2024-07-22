@@ -31,12 +31,11 @@ Route::post('verify-email', VerifyEmailController::class);
 Route::post('forgot-password', ForgotPasswordController::class);
 Route::post('reset-password', ResetPasswordController::class);
 Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
-Route::post('import', [ExcelImportController::class, 'import']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('me', [MeController::class, 'show']);
 
-
+    Route::post('import', [ExcelImportController::class, 'import']);
 
 
     Route::post('change-password', [UserController::class, 'changePassword']);
