@@ -19,7 +19,7 @@ class WelcomeMail extends Mailable
      */
     public function __construct(public User $user)
     {
-        //
+        dd($user);
     }
 
     /**
@@ -37,7 +37,6 @@ class WelcomeMail extends Mailable
      */
     public function content(): Content
     {
-
         return new Content(
             view: 'emails.welcome',
         );
