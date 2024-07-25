@@ -13,7 +13,7 @@ class SendWelcomeEmail implements ShouldQueue
     /**
      * Create the event listener.
      */
-    use InteractsWithQueue;  // adicionei após assistir vídeo sobre envio de e-mails.
+    use InteractsWithQueue;
 
     public function __construct()
     {

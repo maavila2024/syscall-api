@@ -13,11 +13,9 @@ class SendWelcomeEmail implements ShouldQueue
     /**
      * Create the event listener.
      */
-    use InteractsWithQueue;  // adicionei após assistir vídeo sobre envio de e-mails.
-
     public function __construct()
     {
-        //
+        dd('welcome');
     }
 
     /**
@@ -26,7 +24,6 @@ class SendWelcomeEmail implements ShouldQueue
     public function handle(UserRegistered $event): void
     {
         $user = $event->user;
-        // dd($user->email);
         Mail::to($user->email)
         ->send(new WelcomeMail($user));
     }

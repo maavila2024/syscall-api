@@ -37,7 +37,7 @@ class WelcomeMail extends Mailable
      */
     public function content(): Content
     {
-
+        dd('oi');
         return new Content(
             view: 'emails.welcome',
         );
