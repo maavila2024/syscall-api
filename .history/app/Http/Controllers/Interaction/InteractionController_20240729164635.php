@@ -74,11 +74,13 @@ class InteractionController extends Controller
             return response()->json(['message' => 'No notification recipient found'], 404);
         }
 
+
         // Crie o título da notificação
         $title = 'Uma nota de trabalho foi criada na task ' . $task->task_code . '. Favor verificar!';
 
         // Enviar notificação para o criador da task
-        $recipient->notify(new InteractionCreated($title, $task->task_code, $request->comment));
+        $creator->notify(new InteractionCreated($title, $task->task_code, $request->comment));
+
 
         // Enviar notificação para o criador da task
         // $creator->notify(new InteractionCreated($title, $interaction, $task));

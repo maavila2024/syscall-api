@@ -10,7 +10,6 @@ use App\Models\Task;
 use Illuminate\Http\Request;
 use App\Helpers\TaskCodeGenerator;
 use App\Models\Interaction;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -25,7 +24,7 @@ class TaskController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('task_code', 'LIKE', "%{$search}%")
                     ->orWhere('name', 'LIKE', "%{$search}%")
-                    // ->orWhere('description', 'LIKE', "%{$search}%")
+                    ->orWhere('description', 'LIKE', "%{$search}%")
                     ->orWhereHas('userOwner', function ($q) use ($search) {
                         $q->where('first_name', 'LIKE', "%{$search}%");
                     })
@@ -68,46 +67,45 @@ class TaskController extends Controller
     }
 
     public function update(TaskUpdateRequest $request, $id)
-    {
-        $task = Task::findOrFail($id);
-        $taskData = $request->validated();
+{
+    $task = Task::findOrFail($id);
 
-        $currentTaskType = $task->task_type;
-        $newTaskType = $request->input('task_type');
+    $taskData = $request->validated();
+    $currentTaskType = $task->task_type;
+    $newTaskType = $request->input('task_type');
 
-        if ($currentTaskType != $newTaskType) {
-            $prefix = $newTaskType == 1 ? 'I' : 'M';
-            $number = intval(substr($task->task_code, 1));
-            $taskData['task_code'] = $prefix . str_pad($number, 6, '0', STR_PAD_LEFT);
-        }
-
-        $task->update($taskData);
-
-        // Formatar as datas
-        $finishDate = $task->finish_date ? Carbon::parse($task->finish_date)->format('d-m-Y') : '';
-        $expectedDate = $task->expected_date ? Carbon::parse($task->expected_date)->format('d-m-Y') : '';
-
-        $complexityName = $task->complexity->name ?? '';
-        $priorityName = $task->priority->name ?? '';
-        $taskStatusName = $task->taskStatus->name ?? '';
-
-        // Criar registro na tabela interactions
-        $userId = auth()->user()->id;
-        Interaction::create([
-            'task_id' => $task->id,
-            'user_id' => $userId,
-            'comment' => "Chamado atualizado! " .
-                "Status do chamado: $taskStatusName , Sequência: {$task->sequence}, " .
-                "Complexidade: $complexityName, Justificativa complexidade: {$task->complexity_justification}, " .
-                "Prioridade: $priorityName, Justificativa prioridade: {$task->priority_justification}, " .
-                "Data esperada: $expectedDate, Data conclusão: $finishDate ."
-
-        ]);
-
-        return response()->json($task, 200);
+    if ($currentTaskType != $newTaskType) {
+        $prefix = $newTaskType == 1 ? 'I' : 'M';
+        $number = intval(substr($task->task_code, 1));
+        $taskData['task_code'] = $prefix . str_pad($number, 6, '0', STR_PAD_LEFT);
     }
 
+    $task->update($taskData);
 
+    // Criação da nova interação
+    $user = Auth::user();
+    $comment = sprintf(
+        "Complexidade_id: %s, Justificativa complexidade: %s, Data esperada: %s, Data conclusão: %s, Prioridade: %s, Justificativa prioridade: %s, Sequência: %s, Status: %s, Status do chamado: %s, updated_at: %s",
+        $task->complexity_id,
+        $task->complexity_justification,
+        $task->expected_date,
+        $task->finish_date,
+        $task->priority_id,
+        $task->priority_justification,
+        $task->sequence,
+        $task->status,
+        $task->task_status_id,
+        now()
+    );
+
+    Interaction::create([
+        'task_id' => $task->id,
+        'user_id' => $user->id,
+        'comment' => $comment
+    ]);
+
+    return response()->json($task, 200);
+}
 
 
     public function show($id)

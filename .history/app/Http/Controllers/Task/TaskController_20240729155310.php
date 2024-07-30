@@ -25,7 +25,7 @@ class TaskController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('task_code', 'LIKE', "%{$search}%")
                     ->orWhere('name', 'LIKE', "%{$search}%")
-                    // ->orWhere('description', 'LIKE', "%{$search}%")
+                    ->orWhere('description', 'LIKE', "%{$search}%")
                     ->orWhereHas('userOwner', function ($q) use ($search) {
                         $q->where('first_name', 'LIKE', "%{$search}%");
                     })
