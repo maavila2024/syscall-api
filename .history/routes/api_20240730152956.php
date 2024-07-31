@@ -33,7 +33,6 @@ Route::post('reset-password', ResetPasswordController::class);
 Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
 Route::get('tasks/chart-statistics', [TaskController::class, 'getChartTaskStatistics']);
 Route::post('import', [ExcelImportController::class, 'import']);
-Route::get('/export-tasks', [TaskController::class, 'exportTasks'])->name('tasks.export');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('me', [MeController::class, 'show']);
