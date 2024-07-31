@@ -13,7 +13,6 @@ use App\Models\Interaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Response;
 
 class TaskController extends Controller
 {
@@ -124,26 +123,7 @@ class TaskController extends Controller
         return response()->json(null, 204);
     }
 
-    public function getTaskStatistics()
-    {
-        $totalTasks = Task::count();
-        $statusOpen = Task::where('task_status_id', 1)->count();
-        $statusInDevelopment = Task::where('task_status_id', 2)->count();
-        $statusWaitingResponse = Task::where('task_status_id', 3)->count();
-        $statusSentForTesting = Task::where('task_status_id', 4)->count();
-        $statusCompleted = Task::where('task_status_id', 5)->count();
-
-        return response()->json([
-            'totalTasks' => $totalTasks,
-            'statusOpen' => $statusOpen,
-            'statusInDevelopment' => $statusInDevelopment,
-            'statusWaitingResponse' => $statusWaitingResponse,
-            'statusSentForTesting' => $statusSentForTesting,
-            'statusCompleted' => $statusCompleted,
-        ]);
-    }
-
-    public function getChartTaskStatistics(Request $request)
+    public function getTaskStatistics(Request $request)
     {
         // Obtém os parâmetros segment e date da requisição
         $segment = $request->input('segment');
@@ -166,11 +146,11 @@ class TaskController extends Controller
 
         // Obtém as estatísticas filtradas
         $totalTasks = $query->count();
-        $statusOpen = $query->clone()->where('task_status_id', 1)->count();
-        $statusInDevelopment = $query->clone()->where('task_status_id', 2)->count();
-        $statusWaitingResponse = $query->clone()->where('task_status_id', 3)->count();
-        $statusSentForTesting = $query->clone()->where('task_status_id', 4)->count();
-        $statusCompleted = $query->clone()->where('task_status_id', 5)->count();
+        $statusOpen = $query->where('task_status_id', 1)->count();
+        $statusInDevelopment = $query->where('task_status_id', 2)->count();
+        $statusWaitingResponse = $query->where('task_status_id', 3)->count();
+        $statusSentForTesting = $query->where('task_status_id', 4)->count();
+        $statusCompleted = $query->where('task_status_id', 5)->count();
 
         return response()->json([
             'totalTasks' => $totalTasks,
@@ -180,23 +160,5 @@ class TaskController extends Controller
             'statusSentForTesting' => $statusSentForTesting,
             'statusCompleted' => $statusCompleted,
         ]);
-    }
-
-    public function exportTasks()
-    {
-        $tasks = Task::where('task_status_id', 1)->get();
-
-        $csvData = "id,name,description,created_at\n";
-        foreach ($tasks as $task) {
-            $csvData .= "{$task->id},{$task->name},{$task->description},{$task->created_at}\n";
-        }
-
-        $filename = "tasks_export_" . date('Y-m-d_H-i-s') . ".csv";
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        return Response::make(rtrim($csvData, "\n"), 200, $headers);
     }
 }
