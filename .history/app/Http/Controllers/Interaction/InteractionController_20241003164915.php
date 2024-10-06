@@ -27,8 +27,8 @@ class InteractionController extends Controller
             ->with(['interactionFiles', 'user']);
 
         // Se o parâmetro 'task_updated' for passado e for igual a 1, aplicar o filtro
-        if ($request->has('task_updated')) {
-            $query->where('task_updated', false);
+        if ($request->has('task_updated') && $request->task_updated == 1) {
+            $query->where('task_updated', true);
         }
 
         $interactions = $query->get();
