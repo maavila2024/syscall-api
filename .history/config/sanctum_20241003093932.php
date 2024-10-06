@@ -47,7 +47,7 @@ return [
     */
 
     // 'expiration' => null,
-    'expiration' => 600, // Expira os tokens Sanctum após 10 horas
+    'expiration' => 2, // Expira os tokens Sanctum após 2 minutos
 
     /*
     |--------------------------------------------------------------------------

@@ -35,7 +35,7 @@ Route::get('tasks/chart-statistics', [TaskController::class, 'getChartTaskStatis
 Route::post('import', [ExcelImportController::class, 'import']);
 Route::get('/export-tasks', [TaskController::class, 'exportTasks'])->name('tasks.export');
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['check:CheckSession', 'auth:sanctum' ])->group(function () {
     Route::get('me', [MeController::class, 'show']);
 
     Route::post('change-password', [UserController::class, 'changePassword']);
@@ -111,7 +111,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
-Route::middleware(['auth:sanctum', 'team'])->get('test', function() {
+Route::middleware(['check.session', 'auth:sanctum', 'team'])->get('test', function() {
     return 'ok';
 });
 Route::get('/phpinfo', function() {

@@ -24,14 +24,14 @@ class InteractionController extends Controller
     public function show($taskId, Request $request)
     {
         $query = Interaction::where('task_id', $taskId)
-            ->with(['interactionFiles', 'user']);
+        ->with(['interactionFiles', 'user']);
 
-        // Se o parâmetro 'task_updated' for passado e for igual a 1, aplicar o filtro
-        if ($request->has('task_updated')) {
-            $query->where('task_updated', false);
-        }
+    // Se o parâmetro 'task_updated' for passado e for igual a 1, aplicar o filtro
+    if ($request->has('task_updated') && $request->task_updated == 1) {
+        $query->where('task_updated', true);
+    }
 
-        $interactions = $query->get();
+    $interactions = $query->get();
 
         // Adicionar a URL completa do arquivo e formatar a data
         foreach ($interactions as $interaction) {
