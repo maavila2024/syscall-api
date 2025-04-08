@@ -37,29 +37,56 @@ class InteractionFileController extends Controller
     //     return response()->json($interactionFiles, 201);
     // }
 
+    // public function store(InteractionFileStoreRequest $request)
+    // {
+    //     Log::info('Request Data:', $request->all());
+
+    //     $files = $request->file('files');
+    //     $interactionFiles = [];
+
+    //     foreach ($files as $file) {
+    //         // Envia o arquivo para o S3
+    //         $path = Storage::disk('s3')->put('interactions/files', $file);
+
+    //         // Cria o registro no banco de dados
+    //         $interactionFile = InteractionFile::create([
+    //             'interaction_id' => $request->interaction_id,
+    //             'path' => $path, // Caminho retornado pelo S3
+    //             'name' => $file->getClientOriginalName(),
+    //         ]);
+
+    //         $interactionFiles[] = $interactionFile;
+    //     }
+
+    //     return response()->json($interactionFiles, 201);
+    // }
+
     public function store(InteractionFileStoreRequest $request)
-    {
-        Log::info('Request Data:', $request->all());
+{
+    Log::info('Request Data:', $request->all());
 
-        $files = $request->file('files');
-        $interactionFiles = [];
+    $files = $request->file('files');
+    $interactionFiles = [];
 
-        foreach ($files as $file) {
-            // Envia o arquivo para o S3
-            $path = Storage::disk('s3')->put('interactions/files', $file);
+    foreach ($files as $file) {
+        try {
+            $path = Storage::disk('s3')->put('interactions/files', $file, 'public');
 
-            // Cria o registro no banco de dados
-            $interactionFile = InteractionFile::create([
-                'interaction_id' => $request->interaction_id,
-                'path' => $path, // Caminho retornado pelo S3
-                'name' => $file->getClientOriginalName(),
+            if (!$path) {
+                Log::error('Failed to upload file to S3:', ['name' => $file->getClientOriginalName()]);
+                return response()->json(['error' => 'Failed to upload file'], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception during S3 upload:', [
+                'file_name' => $file->getClientOriginalName(),
+                'error' => $e->getMessage(),
             ]);
-
-            $interactionFiles[] = $interactionFile;
+            return response()->json(['error' => 'Exception during S3 upload', 'details' => $e->getMessage()], 500);
         }
 
-        return response()->json($interactionFiles, 201);
-    }
+    return response()->json($interactionFiles, 201);
+}
+
 
 
     // public function store(InteractionFileStoreRequest $request)

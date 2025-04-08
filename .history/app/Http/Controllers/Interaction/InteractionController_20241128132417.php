@@ -21,6 +21,30 @@ class InteractionController extends Controller
         return response()->json(Interaction::paginate(10));
     }
 
+    // public function show($taskId, Request $request)
+    // {
+    //     $query = Interaction::where('task_id', $taskId)
+    //         ->with(['interactionFiles', 'user']);
+
+    //     // Se o parâmetro 'task_updated' for passado e for igual a 1, aplicar o filtro
+    //     if ($request->has('task_updated')) {
+    //         $query->where('task_updated', false);
+    //     }
+
+    //     $interactions = $query->get();
+
+    //     // Adicionar a URL completa do arquivo e formatar a data
+    //     foreach ($interactions as $interaction) {
+    //         foreach ($interaction->interactionFiles as $file) {
+    //             $file->file_url = Storage::url($file->path);
+    //         }
+    //         $interaction->user_email = $interaction->user->email;
+    //         $interaction->created_at = $interaction->created_at->format('d-m-Y H:i');
+    //     }
+
+    //     return response()->json($interactions);
+    // }
+
     public function show($taskId, Request $request)
     {
         $query = Interaction::where('task_id', $taskId)
@@ -36,7 +60,8 @@ class InteractionController extends Controller
         // Adicionar a URL completa do arquivo e formatar a data
         foreach ($interactions as $interaction) {
             foreach ($interaction->interactionFiles as $file) {
-                $file->file_url = Storage::url($file->path);
+                // Gera a URL usando o disco 's3'
+                $file->file_url = Storage::disk('s3')->url($file->path);
             }
             $interaction->user_email = $interaction->user->email;
             $interaction->created_at = $interaction->created_at->format('d-m-Y H:i');
@@ -44,6 +69,7 @@ class InteractionController extends Controller
 
         return response()->json($interactions);
     }
+
 
 
     public function store(InteractionStoreRequest $request)

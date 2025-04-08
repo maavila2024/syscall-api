@@ -37,29 +37,59 @@ class InteractionFileController extends Controller
     //     return response()->json($interactionFiles, 201);
     // }
 
+    // public function store(InteractionFileStoreRequest $request)
+    // {
+    //     Log::info('Request Data:', $request->all());
+
+    //     $files = $request->file('files');
+    //     $interactionFiles = [];
+
+    //     foreach ($files as $file) {
+    //         // Envia o arquivo para o S3
+    //         $path = Storage::disk('s3')->put('interactions/files', $file);
+
+    //         // Cria o registro no banco de dados
+    //         $interactionFile = InteractionFile::create([
+    //             'interaction_id' => $request->interaction_id,
+    //             'path' => $path, // Caminho retornado pelo S3
+    //             'name' => $file->getClientOriginalName(),
+    //         ]);
+
+    //         $interactionFiles[] = $interactionFile;
+    //     }
+
+    //     return response()->json($interactionFiles, 201);
+    // }
+
     public function store(InteractionFileStoreRequest $request)
-    {
-        Log::info('Request Data:', $request->all());
+{
+    Log::info('Request Data:', $request->all());
 
-        $files = $request->file('files');
-        $interactionFiles = [];
+    $files = $request->file('files');
+    $interactionFiles = [];
 
-        foreach ($files as $file) {
-            // Envia o arquivo para o S3
-            $path = Storage::disk('s3')->put('interactions/files', $file);
+    foreach ($files as $file) {
+        // Envia o arquivo para o S3
+        $path = Storage::disk('s3')->put('interactions/files', $file);
 
-            // Cria o registro no banco de dados
-            $interactionFile = InteractionFile::create([
-                'interaction_id' => $request->interaction_id,
-                'path' => $path, // Caminho retornado pelo S3
-                'name' => $file->getClientOriginalName(),
-            ]);
+        Storage::disk('s3')->setVisibility($path, 'public');
 
-            $interactionFiles[] = $interactionFile;
-        }
+        // Cria o registro no banco de dados
+        $interactionFile = InteractionFile::create([
+            'interaction_id' => $request->interaction_id,
+            'path' => $path, // Caminho armazenado no banco
+            'name' => $file->getClientOriginalName(),
+        ]);
 
-        return response()->json($interactionFiles, 201);
+        // Adiciona a URL completa do S3 ao retorno
+        $interactionFile->file_url = Storage::disk('s3')->url($path);
+
+        $interactionFiles[] = $interactionFile;
     }
+
+    return response()->json($interactionFiles, 201);
+}
+
 
 
     // public function store(InteractionFileStoreRequest $request)

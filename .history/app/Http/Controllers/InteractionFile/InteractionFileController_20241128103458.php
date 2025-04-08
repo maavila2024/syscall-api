@@ -88,30 +88,15 @@ class InteractionFileController extends Controller
 
     public function destroy(InteractionFile $interactionFile)
     {
-        // Verifica se o arquivo existe no S3
-        if (Storage::disk('s3')->exists($interactionFile->path)) {
-            // Exclui o arquivo do S3
-            Storage::disk('s3')->delete($interactionFile->path);
+
+        $file = $interactionFile->find($photo);
+
+        if (!$photo) {
         }
 
-        // Exclui o registro do banco de dados
-        $interactionFile->delete();
-
-        return response()->json(['message' => 'File deleted successfully.'], 200);
+        if (Storage::disk('public')->exists($photo->photo)) {
+            Storage::disk('public')->delete($photo->photo);
+        }
+        $photo->delete();
     }
-
-
-    // public function destroy(InteractionFile $interactionFile)
-    // {
-
-    //     $file = $interactionFile->find($photo);
-
-    //     if (!$photo) {
-    //     }
-
-    //     if (Storage::disk('public')->exists($photo->photo)) {
-    //         Storage::disk('public')->delete($photo->photo);
-    //     }
-    //     $photo->delete();
-    // }
 }

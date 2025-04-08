@@ -16,51 +16,26 @@ class InteractionFileController extends Controller
         return response()->json(InteractionFile::paginate(10));
     }
 
-    // public function store(InteractionFileStoreRequest $request)
-    // {
-    //     Log::info('Request Data:', $request->all());
-
-    //     $files = $request->validated();
-    //     $files = $request->file('files');
-    //     $interactionFiles = [];
-
-    //     foreach ($files as $file) {
-    //         $path = $file->store('interactions/files', 'public');
-    //         $interactionFile = InteractionFile::create([
-    //             'interaction_id' => $request->interaction_id,
-    //             'path' => $path,
-    //             'name' => $file->getClientOriginalName(),
-    //         ]);
-    //         $interactionFiles[] = $interactionFile;
-    //     }
-
-    //     return response()->json($interactionFiles, 201);
-    // }
-
     public function store(InteractionFileStoreRequest $request)
     {
         Log::info('Request Data:', $request->all());
 
+        $files = $request->validated();
         $files = $request->file('files');
         $interactionFiles = [];
 
         foreach ($files as $file) {
-            // Envia o arquivo para o S3
-            $path = Storage::disk('s3')->put('interactions/files', $file);
-
-            // Cria o registro no banco de dados
+            $path = $file->store('interactions/files', 'public');
             $interactionFile = InteractionFile::create([
                 'interaction_id' => $request->interaction_id,
-                'path' => $path, // Caminho retornado pelo S3
+                'path' => $path,
                 'name' => $file->getClientOriginalName(),
             ]);
-
             $interactionFiles[] = $interactionFile;
         }
 
         return response()->json($interactionFiles, 201);
     }
-
 
     // public function store(InteractionFileStoreRequest $request)
     // {
@@ -88,30 +63,15 @@ class InteractionFileController extends Controller
 
     public function destroy(InteractionFile $interactionFile)
     {
-        // Verifica se o arquivo existe no S3
-        if (Storage::disk('s3')->exists($interactionFile->path)) {
-            // Exclui o arquivo do S3
-            Storage::disk('s3')->delete($interactionFile->path);
+
+        $file = $interactionFile->find($photo);
+
+        if (!$photo) {
         }
 
-        // Exclui o registro do banco de dados
-        $interactionFile->delete();
-
-        return response()->json(['message' => 'File deleted successfully.'], 200);
+        if (Storage::disk('public')->exists($photo->photo)) {
+            Storage::disk('public')->delete($photo->photo);
+        }
+        $photo->delete();
     }
-
-
-    // public function destroy(InteractionFile $interactionFile)
-    // {
-
-    //     $file = $interactionFile->find($photo);
-
-    //     if (!$photo) {
-    //     }
-
-    //     if (Storage::disk('public')->exists($photo->photo)) {
-    //         Storage::disk('public')->delete($photo->photo);
-    //     }
-    //     $photo->delete();
-    // }
 }

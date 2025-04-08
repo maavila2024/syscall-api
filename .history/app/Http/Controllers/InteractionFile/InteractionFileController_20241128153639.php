@@ -37,29 +37,83 @@ class InteractionFileController extends Controller
     //     return response()->json($interactionFiles, 201);
     // }
 
+    // public function store(InteractionFileStoreRequest $request)
+    // {
+    //     Log::info('Request Data:', $request->all());
+
+    //     $files = $request->file('files');
+    //     $interactionFiles = [];
+
+    //     foreach ($files as $file) {
+    //         // Envia o arquivo para o S3
+    //         $path = Storage::disk('s3')->put('interactions/files', $file);
+
+    //         // Cria o registro no banco de dados
+    //         $interactionFile = InteractionFile::create([
+    //             'interaction_id' => $request->interaction_id,
+    //             'path' => $path, // Caminho retornado pelo S3
+    //             'name' => $file->getClientOriginalName(),
+    //         ]);
+
+    //         $interactionFiles[] = $interactionFile;
+    //     }
+
+    //     return response()->json($interactionFiles, 201);
+    // }
+
     public function store(InteractionFileStoreRequest $request)
-    {
-        Log::info('Request Data:', $request->all());
+{
+    Log::info('Request Data:', $request->all());
 
-        $files = $request->file('files');
-        $interactionFiles = [];
+    $files = $request->file('files');
+    $interactionFiles = [];
 
-        foreach ($files as $file) {
-            // Envia o arquivo para o S3
-            $path = Storage::disk('s3')->put('interactions/files', $file);
+    foreach ($files as $file) {
+        try {
+            // Log do nome do arquivo sendo processado
+            Log::info('Uploading file:', ['name' => $file->getClientOriginalName()]);
+
+            // Verifica se o arquivo é válido antes do upload
+            if (!$file->isValid()) {
+                Log::error('Invalid file upload:', ['name' => $file->getClientOriginalName()]);
+                return response()->json(['error' => 'Invalid file upload'], 400);
+            }
+
+            // Tenta enviar o arquivo para o S3
+            $path = Storage::disk('s3')->put('interactions/files', $file, 'public');
+
+            // Verifica se o upload foi bem-sucedido
+            if (!$path) {
+                Log::error('Failed to upload file to S3:', ['name' => $file->getClientOriginalName()]);
+                return response()->json(['error' => 'Failed to upload file'], 500);
+            }
+
+            Log::info('Uploaded file path:', ['path' => $path]);
 
             // Cria o registro no banco de dados
             $interactionFile = InteractionFile::create([
                 'interaction_id' => $request->interaction_id,
-                'path' => $path, // Caminho retornado pelo S3
+                'path' => $path, // Caminho armazenado no banco
                 'name' => $file->getClientOriginalName(),
             ]);
 
-            $interactionFiles[] = $interactionFile;
-        }
+            // Adiciona a URL completa do S3 ao retorno
+            $interactionFile->file_url = Storage::disk('s3')->url($path);
+            Log::info('File URL:', ['url' => $interactionFile->file_url]);
 
-        return response()->json($interactionFiles, 201);
+            $interactionFiles[] = $interactionFile;
+        } catch (\Exception $e) {
+            Log::error('Error processing file upload:', [
+                'file_name' => $file->getClientOriginalName(),
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'File upload failed', 'details' => $e->getMessage()], 500);
+        }
     }
+
+    return response()->json($interactionFiles, 201);
+}
+
 
 
     // public function store(InteractionFileStoreRequest $request)
