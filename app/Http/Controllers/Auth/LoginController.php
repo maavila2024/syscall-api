@@ -17,17 +17,18 @@ class LoginController extends Controller
      */
     public function __invoke(LoginRequest $request): UserResource
     {
-
+         
         $input = $request->validated();
 
 
         if (!auth()->attempt($input)) {
             throw new InvalidAuthenticationException();
         }
-
+        
         request()->session()->regenerate();
 
         $user = auth()->user();
+        
         return new UserResource($user);
 
 

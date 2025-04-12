@@ -21,57 +21,44 @@ class InteractionController extends Controller
         return response()->json(Interaction::paginate(10));
     }
 
-    // public function show($taskId, Request $request)
-    // {
-    //     $query = Interaction::where('task_id', $taskId)
-    //         ->with(['interactionFiles', 'user']);
+    public function show($id, Request $request)
+    {
+        Log::info('Buscando interações para task:', ['taskId' => $id]);
+        
+        try {
+            $query = Interaction::where('task_id', $id)
+                ->with(['interactionFiles', 'user'])
+                ->orderBy('created_at', 'desc');
 
-    //     // Se o parâmetro 'task_updated' for passado e for igual a 1, aplicar o filtro
-    //     if ($request->has('task_updated')) {
-    //         $query->where('task_updated', false);
-    //     }
+            if ($request->has('task_updated')) {
+                $query->where('task_updated', false);
+            }
 
-    //     $interactions = $query->get();
+            $interactions = $query->get();
 
-    //     // Adicionar a URL completa do arquivo e formatar a data
-    //     foreach ($interactions as $interaction) {
-    //         foreach ($interaction->interactionFiles as $file) {
-    //             $file->file_url = Storage::url($file->path);
-    //         }
-    //         $interaction->user_email = $interaction->user->email;
-    //         $interaction->created_at = $interaction->created_at->format('d-m-Y H:i');
-    //     }
+            Log::info('Interações encontradas:', [
+                'count' => $interactions->count(),
+                'ids' => $interactions->pluck('id')
+            ]);
 
-    //     return response()->json($interactions);
-    // }
+            foreach ($interactions as $interaction) {
+                foreach ($interaction->interactionFiles as $file) {
+                    $file->file_url = Storage::disk('s3')->url($file->path);
+                    Log::info('URL do arquivo:', ['url' => $file->file_url]);
+                }
+                $interaction->user_email = $interaction->user->email;
+                $interaction->created_at = $interaction->created_at->format('d-m-Y H:i');
+            }
 
-    public function show($taskId, Request $request)
-{
-    $query = Interaction::where('task_id', $taskId)
-        ->with(['interactionFiles', 'user']);
-
-    // Se o parâmetro 'task_updated' for passado e for igual a 1, aplicar o filtro
-    if ($request->has('task_updated')) {
-        $query->where('task_updated', false);
-    }
-
-    $interactions = $query->get();
-
-    // Adicionar a URL completa do arquivo e formatar a data
-    foreach ($interactions as $interaction) {
-        foreach ($interaction->interactionFiles as $file) {
-            // Verifica se o arquivo está no S3 e gera a URL completa
-            $file->file_url = Storage::disk('s3')->url($file->path);
+            return response()->json($interactions);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar interações:', [
+                'error' => $e->getMessage(),
+                'taskId' => $id
+            ]);
+            return response()->json(['error' => 'Erro ao buscar interações'], 500);
         }
-        $interaction->user_email = $interaction->user->email;
-        $interaction->created_at = $interaction->created_at->format('d-m-Y H:i');
     }
-
-    return response()->json($interactions);
-}
-
-
-
 
     public function store(InteractionStoreRequest $request)
     {

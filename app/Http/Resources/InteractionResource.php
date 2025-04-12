@@ -18,6 +18,7 @@ class InteractionResource extends JsonResource
                 return [
                     'name' => $file->name,
                     'path' => $file->path,
+                    // 'file_url' => Storage::disk('s3')->url($file->path),
                 ];
             }),
         ];

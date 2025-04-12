@@ -18,23 +18,52 @@ class TaskFileController extends Controller
 
     public function store(TaskFileStoreRequest $request)
     {
-        Log::info('Request Data:', $request->all());
+        Log::info('Iniciando upload de arquivo:', [
+            'request' => $request->all(),
+            'disk_config' => [
+                'driver' => config('filesystems.disks.s3.driver'),
+                'bucket' => config('filesystems.disks.s3.bucket'),
+                'region' => config('filesystems.disks.s3.region'),
+                'url' => config('filesystems.disks.s3.url')
+            ]
+        ]);
 
-        $files = $request->validated();
-        $files = $request->file('files');
-        $taskFiles = [];
+        try {
+            $files = $request->file('files');
+            $taskFiles = [];
 
-        foreach ($files as $file) {
-            $path = $file->store('tasks/files', 'public');
-            $taskFile = TaskFile::create([
-                'task_id' => $request->task_id,
-                'path' => $path,
-                'name' => $file->getClientOriginalName(),
+            foreach ($files as $file) {
+                Log::info('Processando arquivo:', [
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize()
+                ]);
+
+                $path = $file->store('tasks/files', 's3');
+                
+                Log::info('Arquivo armazenado:', [
+                    'path' => $path,
+                    'url' => Storage::disk('s3')->url($path)
+                ]);
+
+                $taskFile = TaskFile::create([
+                    'task_id' => $request->task_id,
+                    'path' => $path,
+                    'name' => $file->getClientOriginalName(),
+                ]);
+
+                // Adiciona a URL do arquivo antes de retornar
+                $taskFile->file_url = Storage::disk('s3')->url($path);
+                $taskFiles[] = $taskFile;
+            }
+
+            return response()->json(['data' => $taskFiles], 201);
+        } catch (\Exception $e) {
+            Log::error('Erro ao salvar arquivo:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-            $taskFiles[] = $taskFile;
+            return response()->json(['error' => 'Erro ao salvar arquivo: ' . $e->getMessage()], 500);
         }
-
-        return response()->json($taskFiles, 201);
     }
 
     // public function store(TaskFileStoreRequest $request)
@@ -76,7 +105,24 @@ class TaskFileController extends Controller
 
     public function show($taskId)
     {
-        $taskFiles = TaskFile::where('task_id', $taskId)->get();
-        return response()->json(['data' => $taskFiles]);
+        try {
+            $taskFiles = TaskFile::where('task_id', $taskId)->get();
+            
+            foreach ($taskFiles as $file) {
+                $file->file_url = Storage::disk('s3')->url($file->path);
+                Log::info('URL do arquivo TaskFile:', [
+                    'path' => $file->path,
+                    'url' => $file->file_url
+                ]);
+            }
+            
+            return response()->json(['data' => $taskFiles]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar arquivos da task:', [
+                'error' => $e->getMessage(),
+                'taskId' => $taskId
+            ]);
+            return response()->json(['error' => 'Erro ao buscar arquivos'], 500);
+        }
     }
 }

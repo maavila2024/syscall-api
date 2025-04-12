@@ -13,7 +13,7 @@ class TaskFile extends Model
 {
     use HasFactory, HasRoles;
 
-    protected $guarded = ['id'];
+    protected $fillable = ['task_id', 'path', 'name'];
 
     protected $table = 'task_files';
 
