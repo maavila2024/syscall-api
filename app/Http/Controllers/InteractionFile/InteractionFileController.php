@@ -39,26 +39,53 @@ class InteractionFileController extends Controller
 
     public function store(InteractionFileStoreRequest $request)
     {
-        Log::info('Request Data:', $request->all());
+        Log::info('Iniciando upload de arquivo para interaction:', [
+            'request' => $request->all(),
+            'disk_config' => [
+                'driver' => config('filesystems.disks.s3.driver'),
+                'bucket' => config('filesystems.disks.s3.bucket'),
+                'region' => config('filesystems.disks.s3.region'),
+                'url' => config('filesystems.disks.s3.url')
+            ]
+        ]);
 
-        $files = $request->file('files');
-        $interactionFiles = [];
+        try {
+            $files = $request->file('files');
+            $interactionFiles = [];
 
-        foreach ($files as $file) {
-            // Envia o arquivo para o S3
-            $path = Storage::disk('s3')->put('interactions/files', $file);
+            foreach ($files as $file) {
+                Log::info('Processando arquivo:', [
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize()
+                ]);
 
-            // Cria o registro no banco de dados
-            $interactionFile = InteractionFile::create([
-                'interaction_id' => $request->interaction_id,
-                'path' => $path, // Caminho retornado pelo S3
-                'name' => $file->getClientOriginalName(),
+                // Armazena o arquivo no S3
+                $path = $file->store('interactions/files', 's3');
+                
+                Log::info('Arquivo armazenado:', [
+                    'path' => $path,
+                    'url' => Storage::disk('s3')->url($path)
+                ]);
+
+                $interactionFile = InteractionFile::create([
+                    'interaction_id' => $request->interaction_id,
+                    'path' => $path,
+                    'name' => $file->getClientOriginalName(),
+                ]);
+
+                // Adiciona a URL do arquivo antes de retornar
+                $interactionFile->file_url = Storage::disk('s3')->url($path);
+                $interactionFiles[] = $interactionFile;
+            }
+
+            return response()->json($interactionFiles, 201);
+        } catch (\Exception $e) {
+            Log::error('Erro ao salvar arquivo:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-
-            $interactionFiles[] = $interactionFile;
+            return response()->json(['error' => 'Erro ao salvar arquivo: ' . $e->getMessage()], 500);
         }
-
-        return response()->json($interactionFiles, 201);
     }
 
 
