@@ -19,35 +19,33 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Task::with('userOwner', 'userResponsible', 'taskStatus', 'priority', 'complexity', 'interactions', 'taskFiles');
+        $query = Task::query()
+            ->select('tasks.*') 
+            ->with([
+                'userOwner:id,first_name,email',
+                'userResponsible:id,first_name,email',
+                'taskStatus:id,name,color,bg_color',
+                'priority:id,name',
+                'complexity:id,name'
+            ]); 
 
+        // Por padrão, não mostra tasks concluídas e canceladas
+        if (!$request->has('show_all')) {
+            $query->whereNotIn('task_status_id', [5, 6]); // Assumindo que 5=Concluído e 6=Cancelado
+        }
+
+        // Busca
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('task_code', 'LIKE', "%{$search}%")
-                    ->orWhere('name', 'LIKE', "%{$search}%")
-                    // ->orWhere('description', 'LIKE', "%{$search}%")
-                    ->orWhereHas('userOwner', function ($q) use ($search) {
-                        $q->where('first_name', 'LIKE', "%{$search}%");
-                    })
-                    ->orWhereHas('userResponsible', function ($q) use ($search) {
-                        $q->where('first_name', 'LIKE', "%{$search}%");
-                    })
-                    ->orWhereHas('taskStatus', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', "%{$search}%");
-                    })
-                    ->orWhereHas('priority', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', "%{$search}%");
-                    })
-                    ->orWhereHas('complexity', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', "%{$search}%");
-                    });
+                  ->orWhere('name', 'LIKE', "%{$search}%");
             });
         }
 
+        // Filtros
         if ($request->has('segment') && $request->segment != '0') {
-            $segment = $request->input('segment');
-            $query->where('segment', $segment);
+            $query->where('segment', $request->segment);
         }
 
         if ($request->has('priority') && $request->input('priority')) {
@@ -74,25 +72,27 @@ class TaskController extends Controller
         if ($request->has('userResponsible') && $request->input('userResponsible')) {
             $userResponsible = $request->input('userResponsible');
             $query->whereHas('userResponsible', function ($q) use ($userResponsible) {
-                $q->where('name', $userResponsible);
+                $q->where('first_name', $userResponsible);
             });
         }
 
         if ($request->has('userOwner') && $request->input('userOwner')) {
             $userOwner = $request->input('userOwner');
             $query->whereHas('userOwner', function ($q) use ($userOwner) {
-                $q->where('name', $userOwner);
+                $q->where('first_name', $userOwner);
             });
         }
 
-        $tasks = $query->paginate(500);
+        // Ordenação
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
 
-        return response()->json($tasks);
-
-        // return response()->json($query->get());
+        // Paginação
+        $perPage = $request->input('per_page', 15);
+        
+        return response()->json($query->paginate($perPage));
     }
-
-
 
     public function store(TaskStoreRequest $request)
     {
@@ -146,9 +146,6 @@ class TaskController extends Controller
 
         return response()->json($task, 200);
     }
-
-
-
 
     public function show($id)
     {
