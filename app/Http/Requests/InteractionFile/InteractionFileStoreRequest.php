@@ -22,8 +22,9 @@ class InteractionFileStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'files.*' => 'required|max:10240',
-            'interaction_id' => 'required',
+            'interaction_id' => 'required|exists:interactions,id',
+            'files' => 'required|array',
+            'files.*' => 'required|file|max:10240' // 10MB max
         ];
     }
 }

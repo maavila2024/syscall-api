@@ -41,6 +41,7 @@ class InteractionFileController extends Controller
     {
         Log::info('Iniciando upload de arquivo para interaction:', [
             'request' => $request->all(),
+            'files' => $request->hasFile('files') ? 'tem arquivos' : 'sem arquivos',
             'disk_config' => [
                 'driver' => config('filesystems.disks.s3.driver'),
                 'bucket' => config('filesystems.disks.s3.bucket'),
@@ -50,13 +51,22 @@ class InteractionFileController extends Controller
         ]);
 
         try {
+            if (!$request->hasFile('files')) {
+                throw new \Exception('Nenhum arquivo enviado');
+            }
+
             $files = $request->file('files');
             $interactionFiles = [];
 
             foreach ($files as $file) {
+                if (!$file->isValid()) {
+                    throw new \Exception('Arquivo inválido: ' . $file->getErrorMessage());
+                }
+
                 Log::info('Processando arquivo:', [
                     'name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize()
+                    'size' => $file->getSize(),
+                    'mime' => $file->getMimeType()
                 ]);
 
                 // Armazena o arquivo no S3
