@@ -61,54 +61,51 @@ class InteractionController extends Controller
     }
 
     public function store(InteractionStoreRequest $request)
-    {
-        $validated = $request->validated();
+{
+    $validated = $request->validated();
 
-        $interaction = Interaction::create([
-            'task_id' => $request->task_id,
-            'user_id' => $request->user_id,
-            'comment' => $request->comment,
-        ]);
+    // Cria a interação normalmente
+    $interaction = Interaction::create([
+        'task_id' => $request->task_id,
+        'user_id' => $request->user_id,
+        'comment' => $request->comment,
+    ]);
 
-        // Verifique se a task existe e tem um criador
-        $task = Task::find($request->task_id);
+    // Busca a task relacionada
+    $task = Task::find($request->task_id);
 
-        if ($task === null) {
-            return response()->json(['message' => 'Task not found'], 404);
-        }
-
-        $creator = $task->userOwner;
-        $responsible = $task->userResponsible;
-
-        if ($creator === null) {
-            return response()->json(['message' => 'Task creator not found'], 404);
-        }
-
-        // Verificar usuário logado
-        $loggedInUserId = auth()->user()->id;
-
-        // Determinar o destinatário da notificação
-        $recipient = $loggedInUserId === $creator->id ? $responsible : $creator;
-
-        if ($recipient === null) {
-            return response()->json(['message' => 'No notification recipient found'], 404);
-        }
-
-        // Crie o título da notificação
-        $title = 'Uma nota de trabalho foi criada na task ' . $task->task_code . '. Favor verificar!';
-
-        // Enviar notificação para o criador da task
-        $recipient->notify(new InteractionCreated($title, $task->task_code, $request->comment));
-
-        // Enviar notificação para o criador da task
-        // $creator->notify(new InteractionCreated($title, $interaction, $task));
-
-
-        // Broadcast de evento, se necessário
-        // broadcast(new InteractionCreated($interaction))->toOthers();
-
-        return response()->json($interaction, 201);
+    if (!$task) {
+        return response()->json(['message' => 'Task not found'], 404);
     }
+
+    $creator = $task->userOwner;
+    $responsible = $task->userResponsible;
+    $loggedInUserId = auth()->user()->id;
+
+    // Define o destinatário da notificação, se possível
+    $recipient = null;
+
+    if ($responsible && $loggedInUserId !== $responsible->id) {
+        $recipient = $responsible;
+    } elseif ($creator && $loggedInUserId !== $creator->id) {
+        $recipient = $creator;
+    }
+
+    if ($recipient) {
+        $title = 'Uma nota de trabalho foi criada na task ' . $task->task_code . '. Favor verificar!';
+        $recipient->notify(new InteractionCreated($title, $task->task_code, $request->comment));
+    } else {
+        Log::info('Interação criada sem destinatário para notificação', [
+            'task_id' => $task->id,
+            'creator_id' => $creator?->id,
+            'responsible_id' => $responsible?->id,
+            'logged_user_id' => $loggedInUserId,
+        ]);
+    }
+
+    return response()->json($interaction, 201);
+}
+
 
 
     public function update(InteractionUpdateRequest $request, Interaction $interaction)
