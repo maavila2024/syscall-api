@@ -1,9 +1,10 @@
+<?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddIndexesToTasksTable extends Migration
-{
+return new class extends Migration {
     public function up()
     {
         Schema::table('tasks', function (Blueprint $table) {
@@ -18,11 +19,11 @@ class AddIndexesToTasksTable extends Migration
     public function down()
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->dropIndex('task_status_id');
-            $table->dropIndex('segment');
-            $table->dropIndex('created_at');
-            $table->dropIndex('task_code');
-            $table->dropIndex(['task_status_id', 'segment']);
+            $table->dropIndex(['task_status_id']);
+            $table->dropIndex(['segment']);
+            $table->dropIndex(['created_at']);
+            $table->dropIndex(['task_code']);
+            $table->dropIndex('tasks_task_status_id_segment_index');
         });
     }
-} 
+};
