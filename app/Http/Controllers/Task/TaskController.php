@@ -30,8 +30,8 @@ class TaskController extends Controller
             ]); 
 
         // Modificando o filtro padrão
-        if (!$request->boolean('show_all')) {  // Usando boolean() para garantir conversão correta
-            $query->whereNotIn('task_status_id', [5, 6]);  // 5=Concluído, 6=Cancelado
+        if (!$request->boolean('show_all')) {
+            $query->whereNotIn('task_status_id', [5, 9]);  // 5=Concluído, 9=Cancelado
             \Log::info('Aplicando filtro de status', [
                 'show_all' => $request->show_all,
                 'sql' => $query->toSql(),
