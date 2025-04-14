@@ -82,7 +82,7 @@ class InteractionController extends Controller
     $responsible = $task->userResponsible;
     $loggedInUserId = auth()->user()->id;
 
-    // Define o destinatário da notificação, se possível
+    // Define o destinatário da notificação
     $recipient = null;
 
     if ($responsible && $loggedInUserId !== $responsible->id) {
@@ -91,7 +91,15 @@ class InteractionController extends Controller
         $recipient = $creator;
     }
 
-    if ($recipient) {
+    // Verifica se notificações estão desativadas via .env
+    if (env('DISABLE_PUSHER_NOTIFICATIONS', false)) {
+        Log::info('Notificação desativada via .env para interação na task.', [
+            'task_id' => $task->id,
+            'creator_id' => $creator?->id,
+            'responsible_id' => $responsible?->id,
+            'logged_user_id' => $loggedInUserId,
+        ]);
+    } elseif ($recipient) {
         $title = 'Uma nota de trabalho foi criada na task ' . $task->task_code . '. Favor verificar!';
         $recipient->notify(new InteractionCreated($title, $task->task_code, $request->comment));
     } else {
