@@ -31,21 +31,20 @@ class TaskController extends Controller
 
         // Por padrão, não mostra tasks concluídas e canceladas
         if (!$request->has('show_all')) {
-            $query->whereNotIn('task_status_id', [5, 6]); // Assumindo que 5=Concluído e 6=Cancelado
+            $query->whereNotIn('task_status_id', [5, 6]); // 5=Concluído, 6=Cancelado
         }
 
-        // Busca
+        // Mantém os filtros existentes
+        if ($request->has('segment') && $request->segment != '0') {
+            $query->where('segment', $request->segment);
+        }
+
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('task_code', 'LIKE', "%{$search}%")
                   ->orWhere('name', 'LIKE', "%{$search}%");
             });
-        }
-
-        // Filtros
-        if ($request->has('segment') && $request->segment != '0') {
-            $query->where('segment', $request->segment);
         }
 
         if ($request->has('priority') && $request->input('priority')) {
