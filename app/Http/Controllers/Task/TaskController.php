@@ -29,14 +29,17 @@ class TaskController extends Controller
                 'complexity:id,name'
             ]); 
 
-        // Modificando o filtro padrão
-        if (!$request->boolean('show_all')) {
-            $query->whereNotIn('task_status_id', [5, 9]);  // 5=Concluído, 9=Cancelado
-            \Log::info('Aplicando filtro de status', [
-                'show_all' => $request->show_all,
-                'sql' => $query->toSql(),
-                'bindings' => $query->getBindings()
-            ]);
+        // Se tiver filtro de mês/ano, aplica antes do filtro de status
+        if ($request->has('filter_month') && $request->has('filter_year')) {
+            $month = $request->filter_month;
+            $year = $request->filter_year;
+            
+            $query->whereYear('finish_date', $year)
+                  ->whereMonth('finish_date', $month);
+        }
+        // Se não tiver filtro de data, aplica o filtro normal de status
+        else if (!$request->boolean('show_all')) {
+            $query->whereNotIn('task_status_id', [5, 9]);
         }
 
         // Mantém os filtros existentes
