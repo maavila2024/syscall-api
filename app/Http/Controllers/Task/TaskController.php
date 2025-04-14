@@ -29,9 +29,14 @@ class TaskController extends Controller
                 'complexity:id,name'
             ]); 
 
-        // Por padrão, não mostra tasks concluídas e canceladas
-        if (!$request->has('show_all')) {
-            $query->whereNotIn('task_status_id', [5, 6]); // 5=Concluído, 6=Cancelado
+        // Modificando o filtro padrão
+        if (!$request->boolean('show_all')) {  // Usando boolean() para garantir conversão correta
+            $query->whereNotIn('task_status_id', [5, 6]);  // 5=Concluído, 6=Cancelado
+            \Log::info('Aplicando filtro de status', [
+                'show_all' => $request->show_all,
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
         }
 
         // Mantém os filtros existentes
@@ -90,6 +95,13 @@ class TaskController extends Controller
         // Paginação
         $perPage = $request->input('per_page', 15);
         
+        // Adicionando log para debug
+        \Log::info('Query final', [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings(),
+            'total' => $query->count()
+        ]);
+
         return response()->json($query->paginate($perPage));
     }
 
