@@ -1,14 +1,15 @@
-/.phpunit.cache
+# Laravel
+/vendor
 /node_modules
-/public/build
 /public/hot
 /public/storage
 /storage/*.key
-/vendor
+.phpunit.result.cache
+.phpunit.cache
 .env
+.env.*
 .env.backup
 .env.production
-.phpunit.result.cache
 Homestead.json
 Homestead.yaml
 auth.json
@@ -18,3 +19,12 @@ yarn-error.log
 /.idea
 /.vscode
 
+# Front build (caso use dentro do Laravel)
+public/build
+
+# Vite (caso use Laravel com Vite)
+vite.config.js
+
+# Ignorar arquivos de configuração sensível
+config/cors.php
+config/sanctum.php

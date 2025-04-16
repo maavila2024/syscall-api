@@ -54,7 +54,15 @@ class TaskController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('task_code', 'LIKE', "%{$search}%")
-                  ->orWhere('name', 'LIKE', "%{$search}%");
+                  ->orWhere('name', 'LIKE', "%{$search}%")
+                  ->orWhereHas('userResponsible', function($q) use ($search) {
+                      $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('email', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('userOwner', function($q) use ($search) {
+                      $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('email', 'LIKE', "%{$search}%");
+                  });
             });
         }
 
