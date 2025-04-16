@@ -37,6 +37,7 @@ Route::get('/export-tasks', [TaskController::class, 'exportTasks'])->name('tasks
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('me', [MeController::class, 'show']);
+    Route::patch('me/preferences', [MeController::class, 'updatePreferences']);
 
     Route::post('change-password', [UserController::class, 'changePassword']);
     Route::post('update-first-name', [UserController::class, 'updateFirstName']);

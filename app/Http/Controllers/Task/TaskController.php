@@ -19,6 +19,9 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 15);
+        \Log::info('Requested per_page:', ['per_page' => $perPage]);  // Para debug
+
         $query = Task::query()
             ->select('tasks.*') 
             ->with([
@@ -95,9 +98,6 @@ class TaskController extends Controller
         $sortOrder = $request->input('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        // Paginação
-        $perPage = $request->input('per_page', 15);
-        
         // Adicionando log para debug
         \Log::info('Query final', [
             'sql' => $query->toSql(),
