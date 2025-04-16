@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
 class TaskController extends Controller
-{
+{     
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 15);
+        $perPage = $request->input('per_page', 5);
         \Log::info('Requested per_page:', ['per_page' => $perPage]);  // Para debug
 
         $query = Task::query()
