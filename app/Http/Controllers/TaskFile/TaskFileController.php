@@ -20,6 +20,13 @@ class TaskFileController extends Controller
     {
         Log::info('Iniciando upload de arquivo:', [
             'request' => $request->all(),
+            'files_size' => $request->file('files') ? array_map(function($file) {
+                return [
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime' => $file->getMimeType()
+                ];
+            }, $request->file('files')) : [],
             'disk_config' => [
                 'driver' => config('filesystems.disks.s3.driver'),
                 'bucket' => config('filesystems.disks.s3.bucket'),
@@ -33,12 +40,21 @@ class TaskFileController extends Controller
             $taskFiles = [];
 
             foreach ($files as $file) {
-                Log::info('Processando arquivo:', [
+                Log::info('Tentando fazer upload do arquivo:', [
                     'name' => $file->getClientOriginalName(),
                     'size' => $file->getSize()
                 ]);
 
-                $path = $file->store('tasks/files', 's3');
+                try {
+                    $path = $file->store('tasks/files', 's3');
+                    Log::info('Upload bem sucedido:', ['path' => $path]);
+                } catch (\Exception $e) {
+                    Log::error('Erro no upload para S3:', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw $e;
+                }
                 
                 Log::info('Arquivo armazenado:', [
                     'path' => $path,

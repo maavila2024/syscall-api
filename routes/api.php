@@ -47,6 +47,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('teams/{team:token}', [TeamController::class, 'update']);
     Route::delete('teams/{team:token}', [TeamController::class, 'destroy']);
 
+    Route::get('tasks/filters-data', [TaskController::class, 'getFiltersData']);
+    
     Route::get('tasks', [TaskController::class, 'index']);
     Route::post('tasks', [TaskController::class, 'store']);
     Route::put('tasks/{id}', [TaskController::class, 'update']);
@@ -110,6 +112,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['team'])->group(function () {
         // Adicione as rotas específicas para teams aqui
     });
+
+    
 });
 
 Route::middleware(['auth:sanctum', 'team'])->get('test', function() {
@@ -118,3 +122,4 @@ Route::middleware(['auth:sanctum', 'team'])->get('test', function() {
 Route::get('/phpinfo', function() {
     phpinfo();
 });
+

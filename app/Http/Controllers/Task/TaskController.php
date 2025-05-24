@@ -14,106 +14,110 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use App\Models\TaskStatus;
+use App\Models\Priority;
+use App\Models\Complexity;
 
 class TaskController extends Controller
 {     
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 5);
-        \Log::info('Requested per_page:', ['per_page' => $perPage]);  // Para debug
-
-        $query = Task::query()
-            ->select('tasks.*') 
-            ->with([
-                'userOwner:id,first_name,email',
-                'userResponsible:id,first_name,email',
-                'taskStatus:id,name,color,bg_color',
-                'priority:id,name',
-                'complexity:id,name'
-            ]); 
-
-        // Se tiver filtro de mês/ano, aplica antes do filtro de status
-        if ($request->has('filter_month') && $request->has('filter_year')) {
-            $month = $request->filter_month;
-            $year = $request->filter_year;
+        try {
+            Log::info('Dados recebidos na requisição:', $request->all());
             
-            $query->whereYear('finish_date', $year)
-                  ->whereMonth('finish_date', $month);
+            // Melhor validação do per_page
+            $perPage = is_numeric($request->per_page) && (int)$request->per_page > 0
+                ? (int)$request->per_page
+                : 10;
+
+            $query = Task::query()
+                ->select('tasks.*')
+                ->with([
+                    'userOwner:id,first_name,email',
+                    'userResponsible:id,first_name,email',
+                    'taskStatus:id,name,color,bg_color',
+                    'priority:id,name',
+                    'complexity:id,name'
+                ]);
+
+            // Busca global
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhereHas('userOwner', fn($q) => 
+                          $q->where('first_name', 'like', "%{$search}%")
+                      )
+                      ->orWhereHas('userResponsible', fn($q) => 
+                          $q->where('first_name', 'like', "%{$search}%")
+                      );
+                });
+            }
+
+            // Filtros específicos com suporte a arrays
+            if ($request->filled('taskStatus')) {
+                $statuses = (array) $request->taskStatus;
+                $query->whereHas('taskStatus', fn($q) => 
+                    $q->whereIn('name', $statuses)
+                );
+            }
+
+            if ($request->filled('userResponsible')) {
+                $responsibles = (array) $request->userResponsible;
+                $query->whereHas('userResponsible', fn($q) => 
+                    $q->whereIn('first_name', $responsibles)
+                );
+            }
+
+            if ($request->filled('userOwner')) {
+                $owners = (array) $request->userOwner;
+                $query->whereHas('userOwner', fn($q) => 
+                    $q->whereIn('first_name', $owners)
+                );
+            }
+
+            if ($request->filled('priority')) {
+                $priorities = (array) $request->priority;
+                $query->whereHas('priority', fn($q) => 
+                    $q->whereIn('name', $priorities)
+                );
+            }
+
+            if ($request->filled('complexity')) {
+                $complexities = (array) $request->complexity;
+                $query->whereHas('complexity', fn($q) => 
+                    $q->whereIn('name', $complexities)
+                );
+            }
+
+            // Filtros de data
+            if ($request->filled('filter_month') && $request->filled('filter_year')) {
+                $month = (int) $request->filter_month;
+                $year = (int) $request->filter_year;
+            
+                if ($month > 0 && $month <= 12 && $year > 2000) {
+                    $query->whereMonth('finish_date', $month)
+                          ->whereYear('finish_date', $year);
+                }
+            }
+            
+
+            if (!$request->boolean('show_all')) {
+                $query->whereHas('taskStatus', function ($q) {
+                    $q->whereNotIn('name', ['Concluído', 'Cancelado']);
+                });
+            }
+
+            // Paginação
+            $tasks = $query->paginate($perPage);
+
+            return TaskResource::collection($tasks);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar tasks: ' . $e->getMessage());
+            return response()->json(['error' => 'Erro ao buscar tasks'], 500);
         }
-        // Se não tiver filtro de data, aplica o filtro normal de status
-        else if (!$request->boolean('show_all')) {
-            $query->whereNotIn('task_status_id', [5, 9]);
-        }
-
-        // Mantém os filtros existentes
-        if ($request->has('segment') && $request->segment != '0') {
-            $query->where('segment', $request->segment);
-        }
-
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('task_code', 'LIKE', "%{$search}%")
-                  ->orWhere('name', 'LIKE', "%{$search}%")
-                  ->orWhereHas('userResponsible', function($q) use ($search) {
-                      $q->where('first_name', 'LIKE', "%{$search}%")
-                        ->orWhere('email', 'LIKE', "%{$search}%");
-                  })
-                  ->orWhereHas('userOwner', function($q) use ($search) {
-                      $q->where('first_name', 'LIKE', "%{$search}%")
-                        ->orWhere('email', 'LIKE', "%{$search}%");
-                  });
-            });
-        }
-
-        if ($request->has('priority') && $request->input('priority')) {
-            $priority = $request->input('priority');
-            $query->whereHas('priority', function ($q) use ($priority) {
-                $q->where('name', $priority);
-            });
-        }
-
-        if ($request->has('complexity') && $request->input('complexity')) {
-            $complexity = $request->input('complexity');
-            $query->whereHas('complexity', function ($q) use ($complexity) {
-                $q->where('name', $complexity);
-            });
-        }
-
-        if ($request->has('taskStatus') && $request->input('taskStatus')) {
-            $taskStatus = $request->input('taskStatus');
-            $query->whereHas('taskStatus', function ($q) use ($taskStatus) {
-                $q->where('name', $taskStatus);
-            });
-        }
-
-        if ($request->has('userResponsible') && $request->input('userResponsible')) {
-            $userResponsible = $request->input('userResponsible');
-            $query->whereHas('userResponsible', function ($q) use ($userResponsible) {
-                $q->where('first_name', $userResponsible);
-            });
-        }
-
-        if ($request->has('userOwner') && $request->input('userOwner')) {
-            $userOwner = $request->input('userOwner');
-            $query->whereHas('userOwner', function ($q) use ($userOwner) {
-                $q->where('first_name', $userOwner);
-            });
-        }
-
-        // Ordenação
-        $sortBy = $request->input('sort_by', 'created_at');
-        $sortOrder = $request->input('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        // Adicionando log para debug
-        \Log::info('Query final', [
-            'sql' => $query->toSql(),
-            'bindings' => $query->getBindings(),
-            'total' => $query->count()
-        ]);
-
-        return response()->json($query->paginate($perPage));
     }
 
     public function store(TaskStoreRequest $request)
@@ -256,5 +260,58 @@ class TaskController extends Controller
         ];
 
         return Response::make(rtrim($csvData, "\n"), 200, $headers);
+    }
+
+    public function getFiltersData()
+    {
+        try {
+            // Buscar owners únicos
+            $owners = Task::with('userOwner')
+                ->get()
+                ->pluck('userOwner')
+                ->filter()
+                ->unique('id')
+                ->values()
+                ->map(fn($user) => [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                ]);
+
+            // Buscar responsáveis únicos
+            $responsibles = Task::with('userResponsible')
+                ->get()
+                ->pluck('userResponsible')
+                ->filter()
+                ->unique('id')
+                ->values()
+                ->map(fn($user) => [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                ]);
+
+            // Buscar outros dados de filtro
+            $statuses = TaskStatus::select('id', 'name', 'color', 'bg_color')
+                ->distinct()
+                ->get();
+                
+            $priorities = Priority::select('id', 'name')
+                ->distinct()
+                ->get();
+                
+            $complexities = Complexity::select('id', 'name')
+                ->distinct()
+                ->get();
+
+            return response()->json([
+                'owners' => $owners,
+                'responsibles' => $responsibles,
+                'statuses' => $statuses,
+                'priorities' => $priorities,
+                'complexities' => $complexities,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar dados dos filtros: ' . $e->getMessage());
+            return response()->json(['error' => 'Erro ao carregar dados dos filtros'], 500);
+        }
     }
 }

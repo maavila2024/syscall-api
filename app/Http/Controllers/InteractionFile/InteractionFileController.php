@@ -41,7 +41,13 @@ class InteractionFileController extends Controller
     {
         Log::info('Iniciando upload de arquivo para interaction:', [
             'request' => $request->all(),
-            'files' => $request->hasFile('files') ? 'tem arquivos' : 'sem arquivos',
+            'files_size' => $request->file('files') ? array_map(function($file) {
+                return [
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime' => $file->getMimeType()
+                ];
+            }, $request->file('files')) : [],
             'disk_config' => [
                 'driver' => config('filesystems.disks.s3.driver'),
                 'bucket' => config('filesystems.disks.s3.bucket'),
