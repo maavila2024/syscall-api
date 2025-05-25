@@ -91,6 +91,10 @@ class TaskController extends Controller
                 );
             }
 
+            if ($request->filled('segment') && $request->segment !== '0') {
+                $query->where('segment', $request->segment);
+            }
+            
             // Filtros de data
             if ($request->filled('filter_month') && $request->filled('filter_year')) {
                 $month = (int) $request->filter_month;
