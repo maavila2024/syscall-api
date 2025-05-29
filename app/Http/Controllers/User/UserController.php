@@ -53,6 +53,19 @@ class UserController extends Controller
         return response()->json(['message' => 'Password changed successfully'], 200);
     }
 
+    public function updatePagination(Request $request)
+    {
+        $request->validate([
+            'default_pagination' => 'required|integer|min:5|max:100'
+        ]);
+
+        $user = auth()->user();
+        $user->default_pagination = $request->default_pagination;
+        $user->save();
+
+        return response()->json(['message' => 'Preferência de paginação atualizada.']);
+    }
+
     public function updateFirstName(Request $request)
     {
         $request->validate([

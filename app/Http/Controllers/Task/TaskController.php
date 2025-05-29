@@ -40,11 +40,13 @@ class TaskController extends Controller
                     'complexity:id,name'
                 ]);
 
+            
             // Busca global
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
+                    $q->where('task_code', 'like', "%{$search}%")
+                      ->orWhere('name', 'like', "%{$search}%")
                       ->orWhere('description', 'like', "%{$search}%")
                       ->orWhereHas('userOwner', fn($q) => 
                           $q->where('first_name', 'like', "%{$search}%")
@@ -112,6 +114,11 @@ class TaskController extends Controller
                     $q->whereNotIn('name', ['Concluído', 'Cancelado']);
                 });
             }
+
+            $allowedSortFields = ['task_code', 'sequence', 'name', 'expected_date', 'created_at'];
+            $sortBy = in_array($request->input('sort_by'), $allowedSortFields) ? $request->input('sort_by') : 'created_at';
+            $sortOrder = $request->input('sort_order') === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($sortBy, $sortOrder);
 
             // Paginação
             $tasks = $query->paginate($perPage);
@@ -318,4 +325,5 @@ class TaskController extends Controller
             return response()->json(['error' => 'Erro ao carregar dados dos filtros'], 500);
         }
     }
+    
 }

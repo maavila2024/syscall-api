@@ -92,6 +92,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('tasks-status/{taskId}', [TaskStatusController::class, 'show']);
     Route::delete('tasks-status/{taskStatus}', [TaskStatusController::class, 'destroy']);
 
+    Route::post('users/update-segment', [UserController::class, 'updateSegment']);
+    Route::put('users/update-pagination', [UserController::class, 'updatePagination']);
     Route::get('users', [UserController::class, 'index']);
     Route::post('users', [UserController::class, 'store']);
     Route::put('users/{users}', [UserController::class, 'update']);
@@ -101,7 +103,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Route::get('users/notifications', [UserController::class, 'markAllNotificationComplete']);
     Route::post('users/notifications/mark-all', [UserController::class, 'markAllNotificationComplete']);
     Route::get('users/all', [UserController::class, 'getAllNotifications']);
-    Route::post('users/update-segment', [UserController::class, 'updateSegment']);
+    
 
 
 
