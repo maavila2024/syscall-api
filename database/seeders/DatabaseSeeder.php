@@ -22,6 +22,10 @@ class DatabaseSeeder extends Seeder
             TeamSeeder::class,
             TaskStatusSeeder::class,
             PrioritySeeder::class,
+            ComplexitySeeder::class,
+            RoleHasPermissionsSeeder::class,
+            ModelHasRolesSeeder::class,
+            TaskSeeder::class,
         ]);
     }
 }

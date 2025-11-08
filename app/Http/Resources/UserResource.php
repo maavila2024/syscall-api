@@ -28,6 +28,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'default_segment' => $this->default_segment,
             'default_pagination' => $this->default_pagination,
+            'must_change_password' => $this->must_change_password ?? false,
             'teams' => TeamResource::collection($this->whenLoaded('teams')),
             'tasks' => $this->whenLoaded('tasks'),
             'notifications' => $this->whenLoaded('notifications'), // Adiciona as notificações

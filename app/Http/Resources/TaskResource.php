@@ -31,6 +31,7 @@ class TaskResource extends JsonResource
             'priority_justification' => $this->priority_justification,
             'complexity_id' => $this->complexity_id,
             'complexity_justification' => $this->complexity_justification,
+            'procedure_performed_id' => $this->procedure_performed_id,
             'review_justification' => $this->review_justification,
             'expected_date' => $this->expected_date,
             'finish_date' => $this->finish_date,

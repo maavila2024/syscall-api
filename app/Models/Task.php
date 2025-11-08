@@ -19,6 +19,7 @@ class Task extends Model
         'status' => 'boolean',
         'segment' => 'integer',
         'task_type' => 'integer',
+        'procedure_performed_id' => 'integer',
         'created_at' => 'date'
     ];
 

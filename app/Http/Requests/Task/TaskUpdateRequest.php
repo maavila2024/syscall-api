@@ -46,6 +46,18 @@ class TaskUpdateRequest extends FormRequest
             'expected_date' => 'nullable',
             'finish_date' => 'nullable',
             'sequence' => 'nullable|numeric',
+            'procedure_performed_id' => 'nullable|integer|in:1,2,3',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Converter string vazia ou undefined para null
+        if ($this->has('procedure_performed_id') && ($this->procedure_performed_id === '' || $this->procedure_performed_id === null)) {
+            $this->merge(['procedure_performed_id' => null]);
+        }
     }
 }

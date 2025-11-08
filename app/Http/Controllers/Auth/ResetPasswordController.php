@@ -29,5 +29,9 @@ class ResetPasswordController extends Controller
         $user->save();
 
         $user->resetPasswordTokens()->delete();
+
+        return response()->json([
+            'message' => 'Senha redefinida com sucesso.'
+        ], 200);
     }
 }

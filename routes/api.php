@@ -5,6 +5,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordByTokenController;
+use App\Http\Controllers\Auth\SupportPasswordResetController;
+use App\Http\Controllers\Auth\ForceChangePasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Complexity\ComplexityController;
 use App\Http\Controllers\ExcelImport\ExcelImportController;
@@ -30,6 +33,9 @@ Route::post('register', RegisterController::class);
 Route::post('verify-email', VerifyEmailController::class);
 Route::post('forgot-password', ForgotPasswordController::class);
 Route::post('reset-password', ResetPasswordController::class);
+Route::get('reset-password-by-token/{token}', [ResetPasswordByTokenController::class, 'show']);
+Route::post('reset-password-by-token/{token}', ResetPasswordByTokenController::class);
+Route::post('force-change-password', ForceChangePasswordController::class);
 Route::get('tasks/statistics', [TaskController::class, 'getTaskStatistics']);
 Route::get('tasks/chart-statistics', [TaskController::class, 'getChartTaskStatistics']);
 Route::post('import', [ExcelImportController::class, 'import']);
@@ -41,6 +47,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('change-password', [UserController::class, 'changePassword']);
     Route::post('update-first-name', [UserController::class, 'updateFirstName']);
+    Route::post('support/reset-password', SupportPasswordResetController::class);
 
     Route::get('teams', [TeamController::class, 'index']);
     Route::post('teams', [TeamController::class, 'store']);

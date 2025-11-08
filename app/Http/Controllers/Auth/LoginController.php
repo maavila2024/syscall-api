@@ -29,6 +29,14 @@ class LoginController extends Controller
 
         $user = auth()->user();
         
+        // Verificar se o usuário precisa alterar a senha
+        if ($user->must_change_password) {
+            return (new UserResource($user))->additional([
+                'must_change_password' => true,
+                'message' => 'Você precisa alterar sua senha antes de continuar.'
+            ]);
+        }
+        
         return new UserResource($user);
 
 

@@ -24,7 +24,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'first_name' => 'required|string',
-            'email' => 'required|email|regex:/@agcocorp\.com$/i',
+            'email' => 'required|email|regex:/@grainproteintech\.com$/i',
             'password' => [
                 'required',
                 Password::min(8)->letters()->numbers()
